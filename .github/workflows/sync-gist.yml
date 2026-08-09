@@ -1,0 +1,26 @@
+name: Sync Gist to Repo
+
+on:
+  schedule:
+    # UTC 02:30 = 北京时间周六 10:30
+    - cron: '30 2 * * 6'
+  workflow_dispatch:  # 允许在网页上手动点击运行，方便测试
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch latest Gist content
+        run: |
+          curl -sL "https://gist.githubusercontent.com/yclfch/bd24d676d3f20a0426d6305e6397aa03/raw/lax_nodes.txt" -o lax_nodes.txt
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lax_nodes.txt
+          git diff --quiet --cached || git commit -m "Sync gist content: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
